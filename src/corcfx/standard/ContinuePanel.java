@@ -19,7 +19,7 @@ This file is part of CORCFX.
 */
 package corcfx.standard;
 
-import corc.javafxextend.structure.OptionPanel;
+import corcfx.structure.OptionPanel;
 
 /**
  * A panel that serves no major function other than to pause

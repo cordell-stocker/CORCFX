@@ -19,10 +19,10 @@ This file is part of CORCFX.
 */
 package corcfx.standard;
 
-import corc.javafxextend.structure.AbstractCardImageView;
 import corc.standard.Card;
 import corc.standard.Face;
 import corc.standard.Suit;
+import corcfx.structure.AbstractCardImageView;
 
 public class CardImageView extends AbstractCardImageView<Card> {
 

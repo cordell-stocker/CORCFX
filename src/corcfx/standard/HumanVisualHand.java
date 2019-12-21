@@ -19,8 +19,8 @@ This file is part of CORCFX.
 */
 package corcfx.standard;
 
-import corc.javafxextend.OrganizablePane;
 import corc.standard.Card;
+import corcfx.OrganizablePane;
 
 public class HumanVisualHand extends VisualHand {
 

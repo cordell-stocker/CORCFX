@@ -19,8 +19,8 @@ This file is part of CORCFX.
 */
 package corcfx.standard;
 
-import corc.javafxextend.structure.AbstractVisualHand;
 import corc.standard.Card;
+import corcfx.structure.AbstractVisualHand;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
