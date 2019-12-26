@@ -17,23 +17,26 @@ This file is part of CORCFX.
     You should have received a copy of the GNU General Public License
     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
 */
-package corcfx.standard;
+package corcfx.visual.standard;
 
-import corcfx.structure.OptionPanel;
+import corc.standard.Card;
 
-/**
- * A panel that serves no major function other than to pause
- * model code until "Continue" is clicked.
- */
-public class ContinuePanel extends OptionPanel<String> {
+public class CardImageView extends corcfx.visual.CardImageView {
 
-    private static String[] options = new String[]{"Continue"};
-
-    public ContinuePanel(String headerStyle, String buttonStyle) {
-        super("", ContinuePanel.options, headerStyle, buttonStyle);
+    public CardImageView(Card card) {
+        super(card);
     }
 
-    public void getContinue() {
-        super.getOptionClicked();
+    public CardImageView(CardImageView civ) {
+        super(civ);
+    }
+
+    public CardImageView(Card card, boolean isFaceUp) {
+        super(card, isFaceUp);
+    }
+
+    @Override
+    public Card getCard() {
+        return (Card) super.getCard();
     }
 }

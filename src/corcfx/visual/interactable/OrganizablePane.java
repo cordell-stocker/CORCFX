@@ -1,23 +1,23 @@
 /*
-Copyright 2019, Cordell Stocker (cordellstocker@gmail.com)
-All rights reserved.
-
-This file is part of CORCFX.
-
-    CORCFX is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    CORCFX is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
-*/
-package corcfx;
+ * Copyright 2019, Cordell Stocker (cordellstocker@gmail.com)
+ * All rights reserved.
+ *
+ * This file is part of CORCFX.
+ *
+ *     CORCFX is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     CORCFX is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package corcfx.visual.interactable;
 
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -136,12 +136,7 @@ public class OrganizablePane extends Pane {
     public synchronized void orderChildren() {
         ObservableList<Node> children = this.getChildren();
         List<Node> copyOfChildren = new ArrayList<>(children);
-        copyOfChildren.sort(new Comparator<Node>() {
-            @Override
-            public int compare(Node o1, Node o2) {
-                return (int)(o1.getLayoutX() - o2.getLayoutX());
-            }
-        });
+        copyOfChildren.sort((o1, o2) -> (int)(o1.getLayoutX() - o2.getLayoutX()));
 
         for (int i = 0; i < copyOfChildren.size(); i++) {
             if (i == 0) {
