@@ -19,6 +19,8 @@
  */
 package corcfx.visual.interactable;
 
+import javafx.scene.layout.VBox;
+
 /**
  * A panel that serves no major function other than to pause
  * model code until "Continue" is clicked.
@@ -27,8 +29,8 @@ public class ContinuePanel extends OptionPanel<String> {
 
     private static String[] options = new String[]{"Continue"};
 
-    public ContinuePanel(String headerStyle, String buttonStyle) {
-        super("", ContinuePanel.options, headerStyle, buttonStyle);
+    public ContinuePanel(String headerStyle, String buttonStyle, double minButtonWidth) {
+        super(new VBox(), "", ContinuePanel.options, headerStyle, buttonStyle, minButtonWidth);
     }
 
     public void getContinue() {

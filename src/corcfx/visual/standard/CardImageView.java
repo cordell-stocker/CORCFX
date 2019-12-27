@@ -20,8 +20,14 @@ This file is part of CORCFX.
 package corcfx.visual.standard;
 
 import corc.standard.Card;
+import corc.standard.Face;
+import corc.standard.Suit;
 
 public class CardImageView extends corcfx.visual.CardImageView {
+
+    public CardImageView() {
+        super(new Card(Face.ACE, Suit.SPADES), false);
+    }
 
     public CardImageView(Card card) {
         super(card);

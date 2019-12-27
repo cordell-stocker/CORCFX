@@ -29,12 +29,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class VisualHand extends BorderPane {
 
     private final ObservableList<Node> HAND_PANE_CHILDREN;
-    private final List<CardImageView> SAVED_CARD_IMAGE_VIEWS = new ArrayList<>();
+    private final HashMap<ICard, CardImageView> HASH_MAP = new HashMap<>();
 
     private volatile boolean addingCards;
     private volatile boolean removingCards;
@@ -75,22 +76,13 @@ public class VisualHand extends BorderPane {
 
     protected void addCards(List<? extends ICard> cards) {
         for (ICard card : cards) {
-            this.addCardImageView(new CardImageView(card));
+            this.addCardImageView(card, new CardImageView(card));
         }
     }
 
     protected void removeCards(List<? extends ICard> cards) {
-        List<CardImageView> toRemove = new ArrayList<>();
         for (ICard card : cards) {
-            for (CardImageView cardImageView : this.getSavedCardImageViews()) {
-                if (cardImageView.getCard() == card) {
-                    toRemove.add(cardImageView);
-                    break;
-                }
-            }
-        }
-        for (CardImageView cardImageView : toRemove) {
-            this.removeCardImageView(cardImageView);
+            this.removeCardImageView(card);
         }
     }
 
@@ -100,20 +92,20 @@ public class VisualHand extends BorderPane {
      *
      * @param cardImageView the CardImageView to be added.
      */
-    protected void addCardImageView(CardImageView cardImageView) {
-        this.addToSavedOnly(cardImageView);
+    protected void addCardImageView(ICard card, CardImageView cardImageView) {
         this.addToDisplayOnly(cardImageView);
+        this.addToSavedOnly(card, cardImageView);
     }
 
     /**
      * By default, this method will remove the CardImageView
      * from both the saved list and the handpane's children.
      *
-     * @param cardImageView the CardImageView to be removed.
+     * @param card the CardImageView to be removed.
      */
-    protected void removeCardImageView(CardImageView cardImageView) {
-        this.removeFromSavedOnly(cardImageView);
-        this.removeFromDisplayOnly(cardImageView);
+    protected void removeCardImageView(ICard card) {
+        this.removeFromDisplayOnly(card);
+        this.removeFromSavedOnly(card);
     }
 
     protected final void addToDisplayOnly(CardImageView cardImageView) {
@@ -121,16 +113,20 @@ public class VisualHand extends BorderPane {
         this.HAND_PANE_CHILDREN.add(cardImageView);
     }
 
-    protected final void removeFromDisplayOnly(CardImageView cardImageView) {
-        this.HAND_PANE_CHILDREN.remove(cardImageView);
+    protected final void removeFromDisplayOnly(ICard card) {
+        this.HAND_PANE_CHILDREN.remove(this.HASH_MAP.get(card));
     }
 
-    protected final void addToSavedOnly(CardImageView cardImageView) {
-        this.SAVED_CARD_IMAGE_VIEWS.add(cardImageView);
+    protected final void addToSavedOnly(ICard card, CardImageView civ) {
+        this.HASH_MAP.put(card, civ);
     }
 
-    protected final void removeFromSavedOnly(CardImageView cardImageView) {
-        this.SAVED_CARD_IMAGE_VIEWS.remove(cardImageView);
+    protected final void removeFromSavedOnly(ICard card) {
+        this.HASH_MAP.remove(card);
+    }
+
+    protected final CardImageView getStoredCardImageView(ICard card) {
+        return this.HASH_MAP.get(card);
     }
 
     /**
@@ -166,10 +162,6 @@ public class VisualHand extends BorderPane {
 
     private synchronized void startNotifyAll() {
         notifyAll();
-    }
-
-    protected List<CardImageView> getSavedCardImageViews() {
-        return this.SAVED_CARD_IMAGE_VIEWS;
     }
 
 }

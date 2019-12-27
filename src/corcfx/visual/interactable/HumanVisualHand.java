@@ -46,15 +46,14 @@ public class HumanVisualHand extends VisualHand {
     }
 
     @Override
-    protected void addCardImageView(corcfx.visual.CardImageView CIV) {
-        this.addToSavedOnly(CIV);
+    protected void addCardImageView(ICard card, corcfx.visual.CardImageView CIV) {
+        this.addToSavedOnly(card, CIV);
         HAND_PANE.addNodeAfterLast(CIV);
     }
 
     @Override
-    protected void removeCardImageView(corcfx.visual.CardImageView CIV) {
-        this.removeFromSavedOnly(CIV);
-        HAND_PANE.getChildren().remove(CIV);
+    protected void removeCardImageView(ICard card) {
+        super.removeCardImageView(card);
         HAND_PANE.orderChildren();
     }
 }
