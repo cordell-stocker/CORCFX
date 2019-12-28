@@ -17,145 +17,214 @@
  *     You should have received a copy of the GNU General Public License
  *     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 package corcfx.visual;
 
-import corc.core.Logger;
 import corc.structure.CardsetListener;
 import corc.structure.ICard;
+import java.util.HashMap;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+/**
+ * Displays multiple {@link CardImageView}s that are associated with
+ * an {@link corc.structure.ICardset}.
+ * <p>
+ * A {@link CardsetListener} linked to this (an instance), which will
+ * handle adding and removing cards to and from this, is provided.
+ * Such that the CardImageViews displayed will be a direct
+ * representation of the associated Cardset.
+ *
+ * @param <C>
+ */
+public abstract class VisualHand<C extends ICard> extends BorderPane {
 
-public class VisualHand extends BorderPane {
+    /**
+     * A predefined {@link CardsetListener} to handle the addition
+     * and removal of respective {@link CardImageView}s to this.
+     * <p>
+     * The listener will call {@link Thread#wait()} on the calling
+     * {@link Thread} until the process of adding or removing cards
+     * has finished. So the Thread calling the methods of the listener
+     * MUST NOT be the FXThread.
+     * <p>
+     * This listener SHOULD only be given to a single Cardset. So that
+     * this VisualHand displays a direct representation of the
+     * associated Cardset.
+     */
+    private final CardsetListener<C> cardsetListener = new CardsetListener<>() {
+        @Override
+        public void cardsAdded(List<? extends C> cards) {
+            addingCards = true;
+            Platform.runLater(() -> {
+                addCards(cards);
+                addingCards = false;
+                startNotifyAll();
+            });
 
-    private final ObservableList<Node> HAND_PANE_CHILDREN;
-    private final HashMap<ICard, CardImageView> HASH_MAP = new HashMap<>();
+            startWaitForAddingFinished();
+        }
+
+        @Override
+        public void cardsRemoved(List<? extends C> cards) {
+            removingCards = true;
+            Platform.runLater(() -> {
+                removeCards(cards);
+                removingCards = false;
+                startNotifyAll();
+            });
+
+            startWaitForRemovingFinished();
+        }
+    };
+
+    private final HashMap<C, CardImageView<C>> hashMap = new HashMap<>();
+    private final ObservableList<Node> handPaneChildren;
+    private final CardUrlResolver<C> urlResolver;
 
     private volatile boolean addingCards;
     private volatile boolean removingCards;
 
-    public VisualHand(Pane handPane) {
-        this.HAND_PANE_CHILDREN = handPane.getChildren();
+    /**
+     * Constructs a {@link BorderPane} capable of handling the visual
+     * representation of cards.
+     *
+     * @param handPane    the {@link Pane} that will store
+     *                    {@link CardImageView}s
+     * @param urlResolver the CardUrlResolver to be used to obtain
+     *                    String URLS for the front and back images
+     *                    of cards added to this.
+     */
+    public VisualHand(Pane handPane, CardUrlResolver<C> urlResolver) {
         this.setCenter(handPane);
+        this.handPaneChildren = handPane.getChildren();
+        this.urlResolver = urlResolver;
     }
 
-    public <C extends ICard> CardsetListener<C> makeListener(Class<C> clazz) {
-        return new CardsetListener<>() {
+    /**
+     * Handles the addition of cards to this.
+     * <p>
+     * WARNING: This method will be called inside of the FXThread.
+     * <p>
+     * The {@link VisualHand#cardsetListener} will call this method
+     * in the FXThread whenever cards are added through the listener.
+     * <p>
+     * The implementation will need to handle the creation of
+     * {@link CardImageView}s from the specified list of cards as well
+     * as passing the created CardImageViews to the method
+     * {@link VisualHand#addCardImageView(CardImageView)}.
+     *
+     * @param cards the cards to have their visual representations
+     *              added to this.
+     */
+    protected abstract void addCards(List<? extends C> cards);
 
-            @Override
-            public void cardsAdded(List<? extends C> cards) {
-                addingCards = true;
-                Platform.runLater(() -> {
-                    addCards(cards);
-                    addingCards = false;
-                    startNotifyAll();
-                });
-
-                startWaitForAdding();
-            }
-
-            @Override
-            public void cardsRemoved(List<? extends C> cards) {
-                removingCards = true;
-                Platform.runLater(() -> {
-                    removeCards(cards);
-                    removingCards = false;
-                    startNotifyAll();
-                });
-
-                startWaitForRemoving();
-            }
-        };
+    /**
+     * Handles the addition of {@link CardImageView}s to this.
+     * <p>
+     * By default, this method only calls
+     * {@link VisualHand#addCardImageViewToHashMap(CardImageView)}
+     * and {@link VisualHand#addCardImageViewToHandPane(CardImageView)}
+     * in that order.
+     * <p>
+     * This method MAY be overridden to support additional logic such
+     * as animations. If this method is overridden, the new method
+     * MUST call both the methods described above in the same order
+     * which are called by this default method.
+     *
+     * @param civ the CardImageView being added to this.
+     */
+    protected void addCardImageView(CardImageView<C> civ) {
+        this.addCardImageViewToHashMap(civ);
+        this.addCardImageViewToHandPane(civ);
     }
 
-    protected void addCards(List<? extends ICard> cards) {
-        for (ICard card : cards) {
-            this.addCardImageView(card, new CardImageView(card));
+    protected final void addCardImageViewToHashMap(CardImageView<C> civ) {
+        this.hashMap.put(civ.getCard(), civ);
+    }
+
+    protected final void addCardImageViewToHandPane(CardImageView<C> civ) {
+        this.handPaneChildren.remove(civ); // Prevents duplicate children errors.
+        this.handPaneChildren.add(civ);
+    }
+
+    /**
+     * Handles the removal of cards from this.
+     * <p>
+     * WARNING: This method will be called inside of the FXThread.
+     * <p>
+     * The {@link VisualHand#cardsetListener} will call this method
+     * in the FXThread whenever cards are removed through the listener.
+     *
+     * @param cards the cards to have their visual representations
+     *              removed from this.
+     */
+    protected void removeCards(List<? extends C> cards) {
+        for (C card : cards) {
+            this.removeCardImageView(this.hashMap.get(card));
         }
     }
 
-    protected void removeCards(List<? extends ICard> cards) {
-        for (ICard card : cards) {
-            this.removeCardImageView(card);
-        }
-    }
-
     /**
-     * By default, this method will add the CardImageView to
-     * both the saved list and the handpane's children.
+     * Handles the removal of {@link CardImageView}s from this.
+     * <p>
+     * By default, this method only calls
+     * {@link VisualHand#removeCardImageViewFromHandPane(CardImageView)}
+     * and {@link VisualHand#removeCardImageViewFromHashMap(CardImageView)}
+     * in that order.
+     * <p>
+     * This method MAY be overridden to support additional logic such
+     * as animations. If this method is overridden, the new method
+     * MUST call both the methods described above in the same order
+     * which are called by this default method.
      *
-     * @param cardImageView the CardImageView to be added.
+     * @param civ the CardImageView being removed this.
      */
-    protected void addCardImageView(ICard card, CardImageView cardImageView) {
-        this.addToDisplayOnly(cardImageView);
-        this.addToSavedOnly(card, cardImageView);
+    protected void removeCardImageView(CardImageView<C> civ) {
+        this.removeCardImageViewFromHandPane(civ);
+        this.removeCardImageViewFromHashMap(civ);
     }
 
-    /**
-     * By default, this method will remove the CardImageView
-     * from both the saved list and the handpane's children.
-     *
-     * @param card the CardImageView to be removed.
-     */
-    protected void removeCardImageView(ICard card) {
-        this.removeFromDisplayOnly(card);
-        this.removeFromSavedOnly(card);
+    protected final CardImageView<C> removeCardImageViewFromHashMap(CardImageView<C> civ) {
+        return this.hashMap.remove(civ.getCard());
     }
 
-    protected final void addToDisplayOnly(CardImageView cardImageView) {
-        this.HAND_PANE_CHILDREN.remove(cardImageView);
-        this.HAND_PANE_CHILDREN.add(cardImageView);
+    protected final void removeCardImageViewFromHandPane(CardImageView<C> civ) {
+        this.handPaneChildren.remove(civ);
     }
 
-    protected final void removeFromDisplayOnly(ICard card) {
-        this.HAND_PANE_CHILDREN.remove(this.HASH_MAP.get(card));
+    public CardImageView<C> getCardImageViewFromHashMap(C card) {
+        return this.hashMap.get(card);
     }
 
-    protected final void addToSavedOnly(ICard card, CardImageView civ) {
-        this.HASH_MAP.put(card, civ);
+    public CardsetListener<C> getCardsetListener() {
+        return this.cardsetListener;
     }
 
-    protected final void removeFromSavedOnly(ICard card) {
-        this.HASH_MAP.remove(card);
-    }
-
-    protected final CardImageView getStoredCardImageView(ICard card) {
-        return this.HASH_MAP.get(card);
-    }
-
-    /**
-     * synchronized forces the caller to own this
-     * object's monitor first, before performing
-     * any actions.
-     */
-    private synchronized void startWaitForAdding() {
-        /*
-         * Why still use a boolean flag? Because a Thread can be
-         * woken up before the condition is met.
-         */
+    private synchronized void startWaitForAddingFinished() {
         while (addingCards) {
             try {
                 wait();
             } catch (InterruptedException e) {
-                Logger.logFatal(Thread.currentThread().getName() + " was Interrupted while waiting for Cards " +
-                        "to be added.\n", e);
+                System.err.println(Thread.currentThread().getName() + " was Interrupted while" +
+                        "waiting for Cards to be added.");
+                e.printStackTrace();
             }
         }
     }
 
-    private synchronized void startWaitForRemoving() {
+    private synchronized void startWaitForRemovingFinished() {
         while (removingCards) {
             try {
                 wait();
             } catch (InterruptedException e) {
-                Logger.logFatal(Thread.currentThread().getName() + " was Interrupted while waiting for Cards " +
-                        "to be removed.\n", e);
+                System.err.println(Thread.currentThread().getName() + " was Interrupted while" +
+                        "waiting for Cards to be removed.");
+                e.printStackTrace();
             }
         }
     }
@@ -163,5 +232,4 @@ public class VisualHand extends BorderPane {
     private synchronized void startNotifyAll() {
         notifyAll();
     }
-
 }

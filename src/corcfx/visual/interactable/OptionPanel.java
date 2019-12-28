@@ -26,13 +26,16 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
 /**
- * A {@link Pane} that will display a list of options as {@link Button}s.
- *
- * This is meant to be treated as a sort-of "Menu Screen" callable by a
- * Model {@link Thread} in the Model-View-Controller paradigm.
- *
- * When using this, it is RECOMMENDED to add/remove this from the display as needed
- * using the {@link Pane#getChildren()} of the parent Pane.
+ * Displays a list of options that the user can click.
+ * <p>
+ * The options will appear as {@link Button}s.
+ * <p>
+ * This is meant to be treated as a sort-of "Menu Screen" callable by
+ * a Model {@link Thread} in the Model-View-Controller paradigm.
+ * <p>
+ * When using this, it is RECOMMENDED to add/remove this from the
+ * display as needed using the {@link Pane#getChildren()} of the
+ * parent Pane.
  *
  * @param <T> the class of the options.
  */
@@ -40,43 +43,51 @@ public abstract class OptionPanel<T> extends Pane {
 
     public static final String DEFAULT_HEADER_STYLE =
             "-fx-background-color: WHITE; " +
-            "-fx-border-color: GRAY; " +
-            "-fx-padding: 4px; " +
-            "-fx-font-size: 20px"; // Default
+                    "-fx-border-color: GRAY; " +
+                    "-fx-padding: 4px; " +
+                    "-fx-font-size: 20px"; // Default
     public static final String DEFAULT_BUTTON_STYLE = "DEFAULT";
     public static final String DEFAULT_TITLE = "";
     public static final double MIN_BUTTON_WIDTH = 50;
 
-    private final Pane CONTAINER;
     private T optionClicked;
     private volatile boolean clicked;
 
     /**
-     * Creates a {@link Pane} that will contain a list of {@link Button}s.
-     * This constructor will use the options given with all remaining values
-     * using the default values defined in {@link OptionPanel}.
+     * This constructor will use the options given and then uses the
+     * default values defined in {@link OptionPanel} for the other
+     * values in the
+     * {@link OptionPanel#OptionPanel(Pane, String, Object[], String, String, double)}.
+     * constructor; using a {@link VBox} for the Pane argument.
      *
-     * @param options the options to be displayed as Buttons
+     * @param options the options to be displayed.
      */
     public OptionPanel(T[] options) {
         this(new VBox(), DEFAULT_TITLE, options, DEFAULT_HEADER_STYLE, DEFAULT_BUTTON_STYLE, MIN_BUTTON_WIDTH);
     }
 
     /**
-     * Creates a {@link Pane} that will contain a list of {@link Button}s.
-     *
+     * Constructs {@link Button}s for the specified options which will
+     * be contained in the specified {@link Pane}.
+     * <p>
      * The options will have {@link Object#toString()} called to create
      * the text that will appear on the buttons.
+     * <p>
+     * The order child {@link javafx.scene.Node}s are added to the Pane
+     * is as follows: the title as a {@link Label} (if a non-empty
+     * String is passed), then each specified option as a Button in
+     * array index order.
      *
-     * @param pane the Pane that will contain the title and option Buttons.
-     * @param title the text for the title {@link Label}.
-     * @param options the options to be displayed as Buttons.
-     * @param titleStyle the css-like style to be used for the title Label.
-     * @param buttonStyle the css-like style to be used for the Buttons
+     * @param pane           the Pane that will contain the title and
+     *                       option Buttons.
+     * @param title          the text for the title {@link Label}.
+     * @param options        the options to be displayed as Buttons.
+     * @param titleStyle     the css-like style to be used for the
+     *                       title Label.
+     * @param buttonStyle    the css-like style to be used for the Buttons
      * @param minButtonWidth the minimum width of the Buttons
      */
     public OptionPanel(Pane pane, String title, T[] options, String titleStyle, String buttonStyle, double minButtonWidth) {
-        this.CONTAINER = pane;
         this.getChildren().add(pane);
         OptionPanel<T> that = this; // Prevents confusion in lambdas.
 
@@ -103,9 +114,10 @@ public abstract class OptionPanel<T> extends Pane {
 
     /**
      * Waits for one of the option {@link Button}s to be clicked.
-     *
-     * WARNING: MUST NOT be called on the FXThread. The calling {@link Thread}
-     * will have {@link Thread#wait()} called on it.
+     * <p>
+     * WARNING: MUST NOT be called on the FXThread. The calling
+     * {@link Thread} will have {@link Thread#wait()} called on it
+     * until a button is clicked.
      *
      * @return the option that was clicked.
      */

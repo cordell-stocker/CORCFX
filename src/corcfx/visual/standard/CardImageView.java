@@ -22,27 +22,49 @@ package corcfx.visual.standard;
 import corc.standard.Card;
 import corc.standard.Face;
 import corc.standard.Suit;
+import corcfx.visual.CardUrlResolver;
 
-public class CardImageView extends corcfx.visual.CardImageView {
+/**
+ * A wrapper class for {@link corcfx.experimental.CardImageView} to use
+ * the standard {@link Card}.
+ */
+public class CardImageView extends corcfx.visual.CardImageView<Card> {
 
+    /**
+     * Creates a default CardImageView that uses the ACE of SPADES
+     * from the standard {@link Card}, and is face-down.
+     */
     public CardImageView() {
-        super(new Card(Face.ACE, Suit.SPADES), false);
+        super(new Card(Face.ACE, Suit.SPADES), CardUrlResolver.STANDARD_CARD_RESOLVER, false);
     }
 
-    public CardImageView(Card card) {
-        super(card);
-    }
-
+    /**
+     * Copy Constructor wrapper for {@link corcfx.experimental.CardImageView}.
+     *
+     * @param civ the CardImageView to be copied.
+     */
     public CardImageView(CardImageView civ) {
         super(civ);
     }
 
-    public CardImageView(Card card, boolean isFaceUp) {
-        super(card, isFaceUp);
+    /**
+     * Creates a CardImageView representing the specified {@link Card}.
+     * This CardImageView will appear face-up.
+     *
+     * @param card the Card to represent.
+     */
+    public CardImageView(Card card) {
+        super(card, CardUrlResolver.STANDARD_CARD_RESOLVER);
     }
 
-    @Override
-    public Card getCard() {
-        return (Card) super.getCard();
+    /**
+     * Creates a CardImageView representing the specified {@link Card}.
+     *
+     * @param card     the Card to represent.
+     * @param isFaceUp true if the front {@link javafx.scene.image.Image} will show, false for the back Image.
+     */
+    public CardImageView(Card card, boolean isFaceUp) {
+        super(card, CardUrlResolver.STANDARD_CARD_RESOLVER, isFaceUp);
     }
+
 }

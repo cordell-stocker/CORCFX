@@ -21,20 +21,22 @@ package corcfx.visual.interactable;
 
 import corc.structure.ICard;
 import corcfx.visual.CardImageView;
+import corcfx.visual.CardUrlResolver;
 import corcfx.visual.VisualHand;
 
-public class HumanVisualHand extends VisualHand {
+public abstract class HumanVisualHand<C extends ICard> extends VisualHand<C> {
 
     private final OrganizablePane HAND_PANE;
 
-    public HumanVisualHand(OrganizablePane handPane) {
-        super(handPane);
+    public HumanVisualHand(OrganizablePane handPane, CardUrlResolver<C> resolver) {
+        super(handPane, resolver);
         this.HAND_PANE = handPane;
     }
 
     public ICard getSelectedCard() {
         try {
-            CardImageView cardImageView = (CardImageView) this.HAND_PANE.getSelectedNode();
+            //noinspection unchecked
+            CardImageView<C> cardImageView = (CardImageView<C>) this.HAND_PANE.getSelectedNode();
             return cardImageView.getCard();
         } catch (NullPointerException ex) {
             return null;
@@ -46,14 +48,15 @@ public class HumanVisualHand extends VisualHand {
     }
 
     @Override
-    protected void addCardImageView(ICard card, corcfx.visual.CardImageView CIV) {
-        this.addToSavedOnly(card, CIV);
-        HAND_PANE.addNodeAfterLast(CIV);
+    protected void addCardImageView(CardImageView<C> civ) {
+        this.addCardImageViewToHashMap(civ);
+        this.HAND_PANE.addNodeAfterLast(civ);
     }
 
     @Override
-    protected void removeCardImageView(ICard card) {
-        super.removeCardImageView(card);
-        HAND_PANE.orderChildren();
+    protected void removeCardImageView(CardImageView<C> civ) {
+        super.removeCardImageView(civ);
+        this.HAND_PANE.orderChildren();
     }
+
 }
