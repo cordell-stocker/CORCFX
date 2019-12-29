@@ -20,7 +20,7 @@
 
 package corcfx.visual;
 
-import corc.standard.Card;
+import corc.base.standard.Card;
 import corc.structure.ICard;
 
 /**

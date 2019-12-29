@@ -20,9 +20,9 @@ This file is part of CORCFX.
 
 package corcfx.visual.standard;
 
-import corc.standard.Card;
-import corc.standard.Face;
-import corc.standard.Suit;
+import corc.base.standard.Card;
+import corc.base.standard.Face;
+import corc.base.standard.Suit;
 import corcfx.visual.CardUrlResolver;
 
 /**

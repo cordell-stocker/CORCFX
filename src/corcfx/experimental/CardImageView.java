@@ -22,7 +22,7 @@ package corcfx.experimental;
 
 import static corcfx.visual.CardUrlResolver.STANDARD_CARD_RESOLVER;
 
-import corc.standard.Card;
+import corc.base.standard.Card;
 import corc.structure.ICard;
 import corcfx.visual.CardUrlResolver;
 import java.util.ArrayList;

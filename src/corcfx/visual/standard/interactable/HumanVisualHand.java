@@ -20,7 +20,7 @@
 
 package corcfx.visual.standard.interactable;
 
-import corc.standard.Card;
+import corc.base.standard.Card;
 import corcfx.visual.CardUrlResolver;
 import corcfx.visual.interactable.OrganizablePane;
 

@@ -20,7 +20,7 @@
 
 package corcfx.visual.standard;
 
-import corc.standard.Card;
+import corc.base.standard.Card;
 import corcfx.visual.CardUrlResolver;
 import javafx.scene.layout.Pane;
 
