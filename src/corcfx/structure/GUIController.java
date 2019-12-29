@@ -17,6 +17,7 @@ This file is part of CORCFX.
     You should have received a copy of the GNU General Public License
     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 package corcfx.structure;
 
 import javafx.application.Application;

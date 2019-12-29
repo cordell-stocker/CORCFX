@@ -22,7 +22,6 @@ package corcfx.visual.standard;
 
 import corc.standard.Card;
 import corcfx.visual.CardUrlResolver;
-import java.util.List;
 import javafx.scene.layout.Pane;
 
 /**
@@ -37,18 +36,9 @@ public class VisualHand extends corcfx.visual.VisualHand<Card> {
      *
      * @param handPane    the {@link Pane} that will store
      *                    {@link CardImageView}s
-     * @param urlResolver the CardUrlResolver to be used to obtain
-     *                    String URLS for the front and back images
      */
-    public VisualHand(Pane handPane, CardUrlResolver<Card> urlResolver) {
-        super(handPane, urlResolver);
-    }
-
-    @Override
-    protected void addCards(List<? extends Card> cards) {
-        for (Card card : cards) {
-            super.addCardImageView(new CardImageView(card));
-        }
+    public VisualHand(Pane handPane) {
+        super(handPane, CardUrlResolver.STANDARD_CARD_RESOLVER);
     }
 
 }

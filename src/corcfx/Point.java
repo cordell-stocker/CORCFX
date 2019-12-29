@@ -20,11 +20,20 @@
 
 package corcfx;
 
+/**
+ * A simple 2D coordinate.
+ */
 public class Point {
 
     public final double X;
     public final double Y;
 
+    /**
+     * Creates a simple 2D coordinate.
+     *
+     * @param x the X value.
+     * @param y the Y value.
+     */
     public Point(double x, double y) {
         this.X = x;
         this.Y = y;

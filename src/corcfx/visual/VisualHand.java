@@ -31,17 +31,18 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
 /**
- * Displays multiple {@link CardImageView}s that are associated with
- * an {@link corc.structure.ICardset}.
+ * Displays multiple {@link CardImageView}s that are typically
+ * associated with cards passed through an
+ * {@link corc.structure.ListenableCardset}.
  * <p>
  * A {@link CardsetListener} linked to this (an instance), which will
- * handle adding and removing cards to and from this, is provided.
- * Such that the CardImageViews displayed will be a direct
+ * handle adding and removing cards to and from this is provided,
+ * such that the CardImageViews displayed will be a direct
  * representation of the associated Cardset.
  *
  * @param <C>
  */
-public abstract class VisualHand<C extends ICard> extends BorderPane {
+public class VisualHand<C extends ICard> extends BorderPane {
 
     /**
      * A predefined {@link CardsetListener} to handle the addition
@@ -49,7 +50,7 @@ public abstract class VisualHand<C extends ICard> extends BorderPane {
      * <p>
      * The listener will call {@link Thread#wait()} on the calling
      * {@link Thread} until the process of adding or removing cards
-     * has finished. So the Thread calling the methods of the listener
+     * has finished. The Thread calling the methods of the listener
      * MUST NOT be the FXThread.
      * <p>
      * This listener SHOULD only be given to a single Cardset. So that
@@ -92,8 +93,10 @@ public abstract class VisualHand<C extends ICard> extends BorderPane {
     /**
      * Constructs a {@link BorderPane} capable of handling the visual
      * representation of cards.
+     * <p>
+     * The specified {@link Pane} is stored as the center Pane.
      *
-     * @param handPane    the {@link Pane} that will store
+     * @param handPane    the Pane that will store
      *                    {@link CardImageView}s
      * @param urlResolver the CardUrlResolver to be used to obtain
      *                    String URLS for the front and back images
@@ -108,20 +111,26 @@ public abstract class VisualHand<C extends ICard> extends BorderPane {
     /**
      * Handles the addition of cards to this.
      * <p>
-     * WARNING: This method will be called inside of the FXThread.
+     * WARNING: This method will be called inside of the FXThread by
+     * the built-in {@link CardsetListener} whenever cards are added
+     * through the listener.
      * <p>
-     * The {@link VisualHand#cardsetListener} will call this method
-     * in the FXThread whenever cards are added through the listener.
+     * Creates the {@link CardImageView}s from the specified list of
+     * cards as well as passes the created CardImageViews to the
+     * {@link VisualHand#addCardImageView(CardImageView)} method.
      * <p>
-     * The implementation will need to handle the creation of
-     * {@link CardImageView}s from the specified list of cards as well
-     * as passing the created CardImageViews to the method
-     * {@link VisualHand#addCardImageView(CardImageView)}.
+     * If this method is overridden, the implementor MUST still
+     * handle the process described above.
      *
      * @param cards the cards to have their visual representations
      *              added to this.
      */
-    protected abstract void addCards(List<? extends C> cards);
+    protected void addCards(List<? extends C> cards) {
+        for (C card : cards) {
+            CardImageView<C> civ = new CardImageView<>(card, urlResolver);
+            addCardImageView(civ);
+        }
+    }
 
     /**
      * Handles the addition of {@link CardImageView}s to this.
@@ -155,10 +164,16 @@ public abstract class VisualHand<C extends ICard> extends BorderPane {
     /**
      * Handles the removal of cards from this.
      * <p>
-     * WARNING: This method will be called inside of the FXThread.
+     * WARNING: This method will be called inside of the FXThread by
+     * the built-in {@link CardsetListener} whenever cards are removed
+     * through the listener.
      * <p>
-     * The {@link VisualHand#cardsetListener} will call this method
-     * in the FXThread whenever cards are removed through the listener.
+     * Gets the associated {@link CardImageView}s in this from the
+     * specified list of cards and passes the CardImageViews to the
+     * {@link VisualHand#removeCardImageView(CardImageView)} method.
+     * <p>
+     * If this method is overridden, the implementor MUST still
+     * handle the process described above.
      *
      * @param cards the cards to have their visual representations
      *              removed from this.
@@ -197,10 +212,30 @@ public abstract class VisualHand<C extends ICard> extends BorderPane {
         this.handPaneChildren.remove(civ);
     }
 
-    public CardImageView<C> getCardImageViewFromHashMap(C card) {
+    protected CardImageView<C> getCardImageViewFromHashMap(C card) {
         return this.hashMap.get(card);
     }
 
+    /**
+     * Returns the predefined {@link CardsetListener} linked to this.
+     * <p>
+     * The listener will call {@link Thread#wait()} on the calling
+     * {@link Thread} until the process of adding or removing cards
+     * has finished. The Thread calling the methods of the listener
+     * MUST NOT be the FXThread.
+     * <p>
+     * If the Thread processing the adding or removing of cards is
+     * interrupted, an exception's stack trace will be printed to the
+     * standard error stream at the point of failure. This will not
+     * stop the program, but the result of changes to this VisualHand
+     * is undefined behavior.
+     * <p>
+     * This listener SHOULD only be given to a single Cardset. So that
+     * this VisualHand displays a direct representation of the
+     * associated Cardset.
+     *
+     * @return the listener linked with this.
+     */
     public CardsetListener<C> getCardsetListener() {
         return this.cardsetListener;
     }

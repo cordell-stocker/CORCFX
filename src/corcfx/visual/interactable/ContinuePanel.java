@@ -17,6 +17,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 package corcfx.visual.interactable;
 
 import javafx.scene.layout.VBox;

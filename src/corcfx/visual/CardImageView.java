@@ -31,7 +31,7 @@ import javafx.scene.image.ImageView;
  * between to represent a card as either face-up or face-down.
  * <p>
  * If either {@link Image} is unable to be created, no image
- * will be shown by this. An exception stack trace will be
+ * will be shown by this. An exception's stack trace will be
  * printed to the standard error stream.
  *
  * @param <C>
@@ -98,6 +98,11 @@ public class CardImageView<C extends ICard> extends ImageView {
         update();
     }
 
+    /**
+     * Sets which image to show.
+     *
+     * @param isFaceUp true for the front image, false for the back image.
+     */
     public void setFaceUp(boolean isFaceUp) {
         // Only perform actions if the call to this
         // method would result in a change of state.
@@ -107,6 +112,11 @@ public class CardImageView<C extends ICard> extends ImageView {
         }
     }
 
+    /**
+     * Get which image is bring shown.
+     *
+     * @return true for the front image, false for the back image.
+     */
     public boolean isFaceUp() {
         return this.isFaceUp;
     }

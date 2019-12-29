@@ -23,20 +23,22 @@ package corcfx.visual.standard.interactable;
 import corc.standard.Card;
 import corcfx.visual.CardUrlResolver;
 import corcfx.visual.interactable.OrganizablePane;
-import corcfx.visual.standard.CardImageView;
-import java.util.List;
 
+/**
+ * A wrapper class for {@link corcfx.visual.interactable.HumanVisualHand}
+ * that uses the standard {@link Card}.
+ */
 public class HumanVisualHand extends corcfx.visual.interactable.HumanVisualHand<Card> {
 
+    /**
+     * Constructs a {@link corcfx.visual.interactable.HumanVisualHand}
+     * that uses the standard {@link Card}.
+     *
+     * @param handPane    the {@link OrganizablePane} that will store
+     *                    {@link corcfx.visual.standard.CardImageView}s
+     */
     public HumanVisualHand(OrganizablePane handPane) {
         super(handPane, CardUrlResolver.STANDARD_CARD_RESOLVER);
-    }
-
-    @Override
-    protected void addCards(List<? extends Card> cards) {
-        for (Card card : cards) {
-            super.addCardImageView(new CardImageView(card));
-        }
     }
 
 }

@@ -17,6 +17,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 package corcfx.visual.interactable;
 
 import corc.structure.ICard;
@@ -24,39 +25,58 @@ import corcfx.visual.CardImageView;
 import corcfx.visual.CardUrlResolver;
 import corcfx.visual.VisualHand;
 
+/**
+ * A {@link VisualHand} that uses an {@link OrganizablePane} to hold
+ * its children.
+ *
+ * @param <C>
+ */
 public abstract class HumanVisualHand<C extends ICard> extends VisualHand<C> {
 
     private final OrganizablePane HAND_PANE;
 
+    /**
+     * Creates a {@link VisualHand} with an {@link OrganizablePane}
+     * to hold its children.
+     *
+     * @param handPane the OrganizablePane to use.
+     * @param resolver the CardUrlResolver to be used to obtain
+     *                 String URLS for the front and back images
+     *                 of cards added to this.
+     */
     public HumanVisualHand(OrganizablePane handPane, CardUrlResolver<C> resolver) {
         super(handPane, resolver);
         this.HAND_PANE = handPane;
     }
 
-    public ICard getSelectedCard() {
+    /**
+     * A wrapper method for the {@link OrganizablePane} to get the
+     * card that has been selected.
+     *
+     * If an error occurs while getting the selected card, the
+     * exception will be printed to the standard error stream and
+     * the method will return null.
+     *
+     * @return the card that has been selected.
+     */
+    public C getSelectedCard() {
         try {
             //noinspection unchecked
             CardImageView<C> cardImageView = (CardImageView<C>) this.HAND_PANE.getSelectedNode();
             return cardImageView.getCard();
-        } catch (NullPointerException ex) {
+        } catch (Exception ex) {
+            ex.printStackTrace();
             return null;
         }
     }
 
+    /**
+     * Deselects the currently selected card.
+     *
+     * A wrapper method for the {@link OrganizablePane#deselectNode()}.
+     */
     public void deselectCard() {
-        this.HAND_PANE.clearSelectedNode();
-    }
-
-    @Override
-    protected void addCardImageView(CardImageView<C> civ) {
-        this.addCardImageViewToHashMap(civ);
-        this.HAND_PANE.addNodeAfterLast(civ);
-    }
-
-    @Override
-    protected void removeCardImageView(CardImageView<C> civ) {
-        super.removeCardImageView(civ);
-        this.HAND_PANE.orderChildren();
+        this.HAND_PANE.deselectNode();
     }
 
 }

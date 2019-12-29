@@ -17,228 +17,203 @@
  *     You should have received a copy of the GNU General Public License
  *     along with CORCFX.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 package corcfx.visual.interactable;
 
-import corcfx.experimental.CardImageView;
+import corcfx.Point;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * A user interactable {@link Pane} that allows for the reordering of
- * the contained {@link CardImageView}s by clicking and dragging the
- * child Nodes.
- * <p>
- * The most recently clicked on child Node will be shifted the specified
- * amount in the constructor. That Node is retrievable through the
- * {@link OrganizablePane#getSelectedNode()} method.
- * <p>
- * Only supports placing Nodes horizontally, with a vertical shift
- * when selected.
- */
-public class OrganizablePane extends Pane {
-
-    private final double SELECTED_VERTICAL_SHIFT;
-    private final double HORIZONTAL_SPACING;
+public abstract class OrganizablePane extends Pane {
 
     private Node nodeBeingMoved;
     private Node selectedNode;
-    private double mouseX;
+    private Point oldMousePoint;
 
-    private EventHandler<MouseEvent> mouseReleased;
-    private EventHandler<MouseEvent> mouseDragged;
-    private EventHandler<MouseEvent> mousePressed;
+    private EventHandler<MouseEvent> mousePressed = event -> {
+        if (event.getButton() == MouseButton.PRIMARY && event.getSource() instanceof Node) {
+            oldMousePoint = new Point(event.getSceneX(), event.getSceneY());
 
-    /**
-     * Creates a {@link Pane} that can have its children
-     * reordered by the user by clicking and dragging the
-     * child {@link Node}s.
-     *
-     * @param spacing       the spacing between each child Node.
-     * @param verticalShift the amount to vertically shift the selected Node.
-     */
-    public OrganizablePane(double spacing, double verticalShift) {
-        this.HORIZONTAL_SPACING = spacing;
-        this.SELECTED_VERTICAL_SHIFT = verticalShift;
-        this.setMouseActions();
-        this.setListener();
-    }
+            if (selectedNode != null) {
+                resetSelectedNode(selectedNode);
+            }
 
-    private void setListener() {
-        this.getChildren().addListener((ListChangeListener<Node>) c -> {
+            selectedNode = (Node) event.getSource();
+            nodeSelected(selectedNode);
+            nodeBeingMoved = selectedNode;
+        }
+    };
+
+    private EventHandler<MouseEvent> mouseDragged = event -> {
+        if (event.getButton() == MouseButton.PRIMARY) {
+            Point newMouseLocation = new Point(event.getSceneX(), event.getSceneY());
+            moveNode(selectedNode, newMouseLocation, oldMousePoint);
+            oldMousePoint = newMouseLocation;
+        }
+    };
+
+    private EventHandler<MouseEvent> mouseReleased = event -> {
+        oldMousePoint = new Point(event.getSceneX(), event.getSceneY());
+        onRelease(nodeBeingMoved, oldMousePoint);
+        nodeBeingMoved = null;
+    };
+
+    public OrganizablePane() {
+        this.getChildren().addListener((ListChangeListener<? super Node>) c -> {
             while (c.next()) {
                 if (c.wasAdded()) {
                     for (Node node : c.getAddedSubList()) {
-                        node.setOnMousePressed(this.mousePressed);
-                        node.setOnMouseDragged(this.mouseDragged);
-                        node.setOnMouseReleased(this.mouseReleased);
-                        addNodeAfterLast(node);
+                        node.setOnMousePressed(mousePressed);
+                        node.setOnMouseDragged(mouseDragged);
+                        node.setOnMouseReleased(mouseReleased);
+                        nodeAdded(node);
                     }
+                    orderChildren();
                 }
                 if (c.wasRemoved()) {
                     for (Node node : c.getRemoved()) {
-                        node.setOnMousePressed(null);
-                        node.setOnMouseDragged(null);
-                        node.setOnMouseReleased(null);
-                        if (node == this.selectedNode) {
-                            selectedNode.setTranslateY(0);
-                            selectedNode = null;
+                        if (node.getOnMousePressed() == mousePressed) {
+                            node.setOnMousePressed(null);
                         }
+                        if (node.getOnMouseDragged() == mouseDragged) {
+                            node.setOnMouseDragged(null);
+                        }
+                        if (node.getOnMouseReleased() == mouseReleased) {
+                            node.setOnMouseReleased(null);
+                        }
+                        if (node == selectedNode) {
+                            deselectNode();
+                        }
+                        nodeRemoved(node);
                     }
+                    orderChildren();
                 }
             }
         });
     }
 
-    private void setMouseActions() {
-        this.setMousePressed();
-        this.setMouseDragged();
-        this.setMouseReleased();
-    }
-
-    private void setMousePressed() {
-        this.mousePressed = e -> {
-            try {
-                if (e.getButton() == MouseButton.PRIMARY && e.getSource() instanceof Node) {
-                    mouseX = e.getSceneX();
-                    nodeBeingMoved = (Node) e.getSource();
-
-                    if (selectedNode != null) {
-                        selectedNode.setTranslateY(0);
-                    }
-
-                    selectedNode = nodeBeingMoved;
-                    selectedNode.setTranslateY(SELECTED_VERTICAL_SHIFT);
-                    selectedNode.setViewOrder(-1.0);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        };
-    }
-
-    private void setMouseDragged() {
-        this.mouseDragged = e -> {
-            try {
-                if (e.getButton() == MouseButton.PRIMARY) {
-                    double deltaX = e.getSceneX() - mouseX;
-                    double currentX = nodeBeingMoved.getLayoutX();
-                    nodeBeingMoved.setLayoutX(currentX + deltaX);
-                    mouseX = e.getSceneX();
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        };
-    }
-
-    private void setMouseReleased() {
-        this.mouseReleased = e -> {
-            try {
-                nodeBeingMoved = null;
-                selectedNode.setViewOrder(0.0);
-                orderChildren();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        };
-    }
-
     /**
-     * Sets the layoutX of each child {@link Node} to follow
-     * the spacing specified by the constructor as well as
-     * fix the layering, with Nodes with a smaller layoutX
-     * being behind Nodes with a larger layoutX.
-     */
-    protected synchronized void orderChildren() {
-        ObservableList<Node> children = this.getChildren();
-        List<Node> copyOfChildren = new ArrayList<>(children);
-        copyOfChildren.sort((o1, o2) -> (int) (o1.getLayoutX() - o2.getLayoutX()));
-
-        for (int i = 0; i < copyOfChildren.size(); i++) {
-            if (i == 0) {
-                copyOfChildren.get(0).setLayoutX(this.getLayoutX());
-                copyOfChildren.get(0).setViewOrder(copyOfChildren.size());
-            } else {
-                addNodeAfterOther(copyOfChildren.get(i - 1), copyOfChildren.get(i), copyOfChildren.size() - i);
-            }
-        }
-    }
-
-    private void addNodeAfterOther(Node lead, Node follow, double order) {
-        double lastNodeMaxX = lead.getLayoutX() + lead.getBoundsInLocal().getWidth();
-        follow.setLayoutX(lastNodeMaxX + this.HORIZONTAL_SPACING);
-        follow.setViewOrder(order);
-    }
-
-    /**
-     * Sets the specified {@link Node} to have a layoutX value
-     * to be after the existing right most child Node, following
-     * the horizontal spacing specified by the constructor.
+     * Get the {@link Node} that most recently had the primary mouse
+     * button pressed on it.
      *
-     * @param node the Node to have its layoutX set.
-     */
-    protected void setNodeAfterLast(Node node) {
-        ObservableList<Node> children = this.getChildren();
-        if (!children.isEmpty()) {
-            Node last = children.get(0);
-            for (Node child : children) {
-                if (child.getLayoutX() > last.getLayoutX()) {
-                    last = child;
-                }
-            }
-            double lastNodeMaxX = last.getLayoutX() + last.getBoundsInLocal().getWidth();
-            node.setLayoutX(lastNodeMaxX + this.HORIZONTAL_SPACING);
-        } else {
-            node.setLayoutX(this.getLayoutX());
-        }
-
-    }
-
-    /**
-     * Adds the specified {@link Node} to appear after the
-     * existing right most child Node.
-     *
-     * Calls {@link OrganizablePane#setNodeAfterLast(Node)}
-     * and then adds the Node to this {@link Pane}s children.
-     *
-     * @param node the Node to be added.
-     */
-    public void addNodeAfterLast(Node node) {
-        setNodeAfterLast(node);
-        this.getChildren().add(node);
-    }
-
-    public double getSelectedVerticalShift() {
-        return SELECTED_VERTICAL_SHIFT;
-    }
-
-    public double getHorizontalSpacing() {
-        return HORIZONTAL_SPACING;
-    }
-
-    /**
-     * Gets the last clicked child {@link Node} if it exists.
-     *
-     * @return the last clicked child Node.
+     * @return the most recent Node pressed on by the mouse.
      */
     public Node getSelectedNode() {
         return selectedNode;
     }
 
     /**
-     * Deselects the last clicked child {@link Node}.
-     * This will reset the Node's vertical shift.
+     * Resets the current last selected {@link Node} if it exists and
+     * sets the most recent selected Node to null.
      */
-    public void clearSelectedNode() {
-        selectedNode.setTranslateY(0);
+    public void deselectNode() {
+        resetSelectedNode(selectedNode);
         selectedNode = null;
     }
+
+    /**
+     * Called whenever a child {@link Node} is added to this.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     *
+     * @param node the Node that was added.
+     */
+    protected void nodeAdded(Node node) {
+    }
+
+    /**
+     * Called whenever a child {@link Node} is removed from this.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     *
+     * @param node the Node that was removed.
+     */
+    protected void nodeRemoved(Node node) {
+    }
+
+    /**
+     * Called on the previously selected {@link Node} when a new Node
+     * is pressed. Can also be called on the currently selected Node
+     * by the {@link OrganizablePane#deselectNode()} method.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     *
+     * @param node the Node to reset.
+     */
+    protected void resetSelectedNode(Node node) {
+
+    }
+
+    /**
+     * Called whenever a child {@link Node} has the primary mouse
+     * button pressed on it.
+     * <p>
+     * The previous node that was selected will have the
+     * {@link OrganizablePane#resetSelectedNode(Node)} method called
+     * on it.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     *
+     * @param node the Node that had the primary mouse button pressed on.
+     */
+    protected void nodeSelected(Node node) {
+    }
+
+    /**
+     * Called whenever the currently selected {@link Node} has the
+     * primary mouse button pressed and the mouse is moving.
+     * <p>
+     * The mouse locations use the {@link javafx.scene.Scene}'s
+     * coordinate plane.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     *
+     * @param node                  the Node that is being dragged by
+     *                              the mouse.
+     * @param newMouseLocation      the new location of the mouse since
+     *                              the previous call to this method.
+     * @param previousMouseLocation the location of the mouse from the
+     *                              previous call to this method.
+     */
+    protected void moveNode(Node node, Point newMouseLocation, Point previousMouseLocation) {
+
+    }
+
+    /**
+     * Called whenever the currently selected {@link Node} has the
+     * primary mouse button released from being pressed.
+     * <p>
+     * The mouse location uses the {@link javafx.scene.Scene}'s
+     * coordinate plane.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     *
+     * @param node       the Node that is no longer being pressed on.
+     * @param mousePoint the location of the mouse upon release.
+     */
+    protected void onRelease(Node node, Point mousePoint) {
+
+    }
+
+    /**
+     * Called after a child {@link Node} is a added or removed from
+     * this.
+     * <p>
+     * By default, this method is empty and can be overridden as an
+     * API hook. Any override SHOULD call the super method.
+     */
+    protected void orderChildren() {
+
+    }
+
 }

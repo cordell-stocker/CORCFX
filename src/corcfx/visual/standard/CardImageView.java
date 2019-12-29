@@ -25,8 +25,8 @@ import corc.standard.Suit;
 import corcfx.visual.CardUrlResolver;
 
 /**
- * A wrapper class for {@link corcfx.experimental.CardImageView} to use
- * the standard {@link Card}.
+ * A wrapper class for {@link corcfx.experimental.CardImageView} that
+ * uses the standard {@link Card}.
  */
 public class CardImageView extends corcfx.visual.CardImageView<Card> {
 
@@ -61,7 +61,8 @@ public class CardImageView extends corcfx.visual.CardImageView<Card> {
      * Creates a CardImageView representing the specified {@link Card}.
      *
      * @param card     the Card to represent.
-     * @param isFaceUp true if the front {@link javafx.scene.image.Image} will show, false for the back Image.
+     * @param isFaceUp true if the front {@link javafx.scene.image.Image}
+     *                 will show, false for the back Image.
      */
     public CardImageView(Card card, boolean isFaceUp) {
         super(card, CardUrlResolver.STANDARD_CARD_RESOLVER, isFaceUp);
