@@ -22,14 +22,13 @@ package corcfx.experimental;
 import corc.core.Logger;
 import corc.structure.CardsetListener;
 import corc.structure.ICard;
+import java.util.HashMap;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-
-import java.util.HashMap;
-import java.util.List;
 
 /**
  *

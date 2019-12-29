@@ -20,18 +20,17 @@
 
 package corcfx.experimental;
 
+import static corcfx.visual.CardUrlResolver.STANDARD_CARD_RESOLVER;
+
 import corc.standard.Card;
 import corc.structure.ICard;
 import corcfx.visual.CardUrlResolver;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static corcfx.visual.CardUrlResolver.STANDARD_CARD_RESOLVER;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 /**
  * The visual representation of an {@link ICard} object using an {@link ImageView}.
