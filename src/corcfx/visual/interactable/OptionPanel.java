@@ -50,6 +50,7 @@ public abstract class OptionPanel<T> extends Pane {
     public static final String DEFAULT_TITLE = "";
     public static final double MIN_BUTTON_WIDTH = 50;
 
+    private final Pane pane;
     private T optionClicked;
     private volatile boolean clicked;
 
@@ -89,6 +90,7 @@ public abstract class OptionPanel<T> extends Pane {
      */
     public OptionPanel(Pane pane, String title, T[] options, String titleStyle, String buttonStyle, double minButtonWidth) {
         this.getChildren().add(pane);
+        this.pane = pane;
         OptionPanel<T> that = this; // Prevents confusion in lambdas.
 
         if (title.length() != 0) {
@@ -110,6 +112,8 @@ public abstract class OptionPanel<T> extends Pane {
             });
             pane.getChildren().add(button);
         }
+
+        this.setHeight(pane.getHeight());
     }
 
     /**
@@ -125,6 +129,10 @@ public abstract class OptionPanel<T> extends Pane {
         this.clicked = false;
         startWaitForClick();
         return this.optionClicked;
+    }
+
+    protected Pane getInnerPane() {
+        return this.pane;
     }
 
     private synchronized void startWaitForClick() {
