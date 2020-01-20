@@ -94,7 +94,7 @@ public abstract class OptionPanel<T> extends Pane {
         if (title.length() != 0) {
             Label header = new Label(title);
             header.setStyle(titleStyle);
-            this.getChildren().add(header);
+            pane.getChildren().add(header);
         }
 
         for (T option : options) {
@@ -108,7 +108,7 @@ public abstract class OptionPanel<T> extends Pane {
                 that.clicked = true;
                 that.startNotifyAll();
             });
-            this.getChildren().add(button);
+            pane.getChildren().add(button);
         }
     }
 
